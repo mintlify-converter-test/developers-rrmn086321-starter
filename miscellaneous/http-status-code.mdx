@@ -1,0 +1,29 @@
+---
+title: "Dialpad HTTP Status Codes"
+description: "HTTP response codes for Dialpad APIs"
+---
+The page contains the list of HTTP response status codes that Dialpad public APIs return.
+
+## 2xx: Success
+
+| Status Code | Description |
+| --- | --- |
+| 200 OK | The request was successful, and the payload accompanying the response varies based on the request method used. For instance, a GET request will include the requested entity in the response. |
+
+## 4xx: Bad Request
+
+| Status Code | Description |
+| --- | --- |
+| 400 Bad Request | The request could not be processed by the server due to malformed syntax, for example, missing required parameters. The client should refrain from resubmitting the request without modifications. The response will contain detailed error messages indicating issues with the request. |
+| 401 Unauthorized | Authentication information is missing or invalid. See [https://developers.dialpad.com/docs/authentication-basics](/docs/authentication-basics) for details on authentication basics. |
+| 403 Forbidden | The request contained valid authentication data and was understood by the server, but the server is refusing action. This may be due to the client not having the necessary permissions to access a resource or attempting a prohibited action. |
+| 404 Not Found | The server has not found anything matching the request. |
+| 409 Conflict | The request could not be completed due to a conflict with the current state of the resource, for example, the resource already exists when a POST request is sent. The response will contain detailed error messages indicating the issues with the request. |
+| 413 Request Entity Too Large | The server is refusing to process a request because the request entity is larger than the what server is willing or able to process, for example, the attachment size exceeded allowed limit in the SMS API. |
+| 429 Too Many Requests | The client has sent too many requests in a given amount of time. See [https://developers.dialpad.com/docs/rate-limits](/docs/rate-limits) for an overview and the API reference of each endpoint for details. |
+
+## 5xx: Server Errors
+
+| Status Code | Description |
+| --- | --- |
+| 503 Service Unavailable | The server cannot handle the request due to an internal server error or service is overloaded. If you receive "Cannot generate response. Please contact support with error UUID: xxxx" in the response, please reach out to our support for help. |

@@ -1,0 +1,67 @@
+---
+title: "Change Log Events"
+description: "Details about changes in the Dialpad environment via webhooks."
+---
+Change log events provide details about changes made to the company's Dialpad environment. Currently, change log event subscriptions subscribe to all Dialpad change logs associated with the company.
+
+Events are sent to a webhook that you (as a company admin or developer) provide. To get started, verify your [API key contains the change log scope](/docs/api-key-generation)
+ and [create a webhook using our API](/reference/webhookscreate)
+. Once you have a webhook, [you can create a change log event subscription](/reference/webhook_change_log_event_subscriptioncreate)
+.
+
+# Payload
+
+Payloads sent to your webhook will contain the following fields. If you have created your webhook with a secret, the payload will be JWT encoded.
+
+| Field | Data Type | Description | Notes |
+| --- | --- | --- | --- |
+| date | int (unix ms UTC) | The time stamp when the change log was created. |     |
+| action | string | The action taken or change implemented. | The action is represented by short human readable codes (e.g., `updated_ivr`) |
+| note | string | A text description to provide context to the action. | The formatting for this property is not currently standardized and may be subject to change. |
+| additional\_data | object | An optional field to display what was changed. | The formatting for this property is not currently standardized and may be subject to change. |
+| target | object | The subject of the change. | Includes the target type and id. |
+| changed\_by | object | The source of the change.    The following fields are included for company employees:    **name:** The User's full name.  **id:** The User's ID.  **type:** The source type. | Changes conducted by Dialpad on your behalf (Customer Support & Account Reps) will have the author information redacted. |
+
+# Sample payloads
+
+```json
+{
+  "action": "operator_removed",
+  "additional_data": {
+               "name": "Dialpedia Ltd",
+               "operator_name": "Mary Sue"
+              },
+  "changed_by": {
+    "name": "John Doe",
+    "id": 000000000,
+    "type": "User",
+  },
+  "date": 1620328863056,
+  "note": "Operator removed",
+  "target": {
+    "type": "Office",
+    "id": 1111111
+  }
+}
+
+``````json
+{
+  "action": "operator_removed",
+  "additional_data": {
+               "name": "Dialpedia Ltd",
+               "operator_name": "Mary Sue"
+              },
+  "changed_by": {
+    "name": "Dialpad",
+    "id": null,
+    "type": "User",
+  },
+  "date": 1620328863056,
+  "note": "Operator removed",
+  "target": {
+    "type": "Office",
+    "id": 1111111
+  }
+}
+
+```

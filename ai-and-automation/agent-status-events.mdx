@@ -1,0 +1,49 @@
+---
+title: "Agent Status Events"
+description: "Details on status changes made by company call center agents"
+---
+Agent Status events provide details on the status changes made by the call center agents of your company. Currently, agent status events can only be subscribed to an entire company.
+
+Events are sent to a webhook that you (as a company admin or developer) provide. To get started, [create a webhook using our API](/reference/webhookscreate)
+. Once you have a webhook, [you can create an agent status event subscription.](/reference/webhook_agent_status_event_subscriptioncreate)
+
+# Payload
+
+Payloads sent to your will contain the following fields. If you have created your webhook with secret, the payload will be JWT encoded.
+
+| Field | Data Type | Description | Notes |
+| --- | --- | --- | --- |
+| availability\_status | string | If the agent is available or not. | There are two availability states- available if the user is not in DND mode AND not in a call/video call, otherwise |
+| call\_center\_ids | list of strings | A list of call centers to which the agent is currently on duty. | For example, if agent is available to two call centers and they are \["1234", "5678"\]. After agent toggle unavailable to "1234", the call\_center\_ids should just be \["5678"\] |
+| date | int (unix ms UTC) | The time stamp when the current on\_duty\_status of an agent changed. |     |
+| event\_timestamp | int (unix ms UTC) | Timestamp when the webhook event is generated. |     |
+| on\_duty\_status | string | The on duty status of call center agent. | There are four on duty states - available, unavailable, occupied, wrapup. |
+| on\_duty\_status\_reason | string | The customized reason the agent set when they go off duty. |     |
+| powerdialer\_mode | boolean | Whether or not the call center agent is in powerdialer mode. |     |
+| powerdialer\_session | string | Current autodialer session ID. |     |
+| target | object | This is the ‘target’ indicating which agent changed status.    The following fields are included:    **email:** Agent's primary email.  **id:** Agent's user ID.  **name:** Agent's full name.  **phone\_number:** Agent's primary phone number (E.164 phone number).  **type:** Agent's type. |     |
+
+# Sample payloads
+
+```json
+{
+  "call_center_ids": [
+    "5883344555555555",
+    "6214545667777777"
+  ],
+  "target": {
+    "phone": "+123456789",
+    "type": "user",
+    "email": "test@testdomain.com",
+    "name": "nice agent",
+    "id": 5728255400000000
+  },
+  "on_duty_status": "unavailable",
+  "powerdialer_session": null,
+  "on_duty_status_reason": "snack break for 10",
+  "powerdialer_mode": false,
+  "date": 1620328863056,
+  "availability_status": "unavailable",
+  "event_timestamp": 16203288633333
+}
+```

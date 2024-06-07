@@ -1,0 +1,26 @@
+---
+title: "Introduction"
+description: "Invoke Dialpad from external apps or browser"
+---
+## Introduction
+
+The launch URL can be used to invoke the Dialpad desktop application from any third party app or from a browser. Along with the capability, we provide functionality to change the app behavior before dialing.
+
+## Using the Protocol
+
+The protocol for invoking Dialpad Everywhere is dialpad:// with the following optional parameters:
+
+*   fromNumber: Allows you to switch the user's number from their assigned numbers. This number can be any of the user's numbers, or if the user is part of the operator group in a Main Line or Department, or as an agent in a Call Center - any of the DID's from these share lines can be used.
+*   launchMinimode: Set 1 to always launch in [Dialpad Everywhere](https://help.dialpad.com/hc/en-us/articles/360000407666-Using-Dialpad-Everywhere)
+    
+*   confirmPhone: Set 1 to always require the user to confirm the phone number in the Dialpad app
+*   customData: Specify any data that you'd like to consume back in events
+*   showDispositions: Set to 0 to suppress call dispositions in Dialpad
+*   crmLogging: Set to 0 to suppress CRM logging from Dialpad
+
+For example
+
+```http
+dialpad://+15555555555?launchMinimode=1&confirmPhone=1&fromNumber=+15554444444&crmLogging=0&showDispositions=1&customData=this%20is%20a%20test
+
+```

@@ -1,91 +1,147 @@
 {
   "$schema": "https://mintlify.com/schema.json",
-  "name": "Starter Kit",
+  "name": "developers",
   "logo": {
-    "dark": "/logo/dark.svg",
-    "light": "/logo/light.svg"
+    "dark": "/logo/developers_logo.png",
+    "light": "/logo/developers_logo_inverted.png"
   },
-  "favicon": "/favicon.svg",
+  "favicon": "/developers_favicon.svg",
   "colors": {
-    "primary": "#0D9373",
-    "light": "#07C983",
-    "dark": "#0D9373",
+    "primary": "#6C3DFF",
+    "light": "#5923ff",
+    "dark": "#6C3DFF",
     "anchors": {
-      "from": "#0D9373",
-      "to": "#07C983"
+      "from": "#6C3DFF",
+      "to": "#5923ff"
     }
   },
   "topbarLinks": [
     {
-      "name": "Support",
-      "url": "mailto:hi@mintlify.com"
+      "name": "See pricing",
+      "url": "https://dialpad.com/pricing"
     }
   ],
   "topbarCtaButton": {
-    "name": "Dashboard",
-    "url": "https://dashboard.mintlify.com"
+    "name": "Get started",
+    "url": "https://dialpad.com/products-selection"
+  },
+  "primaryTab": {
+    "name": "Introduction"
   },
   "tabs": [
     {
+      "name": "Introduction",
+      "url": "introduction"
+    },
+    {
       "name": "API Reference",
       "url": "api-reference"
+    },
+    {
+      "name": "New Releases",
+      "url": "new-releases"
+    },
+    {
+      "name": "Discussions",
+      "url": "discussions"
     }
   ],
   "anchors": [
     {
-      "name": "Documentation",
-      "icon": "book-open-cover",
-      "url": "https://mintlify.com/docs"
-    },
-    {
-      "name": "Community",
-      "icon": "slack",
-      "url": "https://mintlify.com/community"
-    },
-    {
       "name": "Blog",
       "icon": "newspaper",
-      "url": "https://mintlify.com/blog"
+      "url": "https://dialpad.com/blog/"
+    },
+    {
+      "name": "Contact Us",
+      "icon": "envelope",
+      "url": "https://dialpad.com/contact-us/"
     }
   ],
+  "modeToggle": {
+    "default": "dark"
+  },
   "navigation": [
     {
-      "group": "Get Started",
+      "group": "Event Subscriptions",
       "pages": [
-        "introduction",
-        "quickstart",
-        "development"
+        "event-subscriptions/event-subscriptions-via-websocket"
       ]
     },
     {
-      "group": "Essentials",
+      "group": "IVR Types",
       "pages": [
-        "essentials/markdown",
-        "essentials/code",
-        "essentials/images",
-        "essentials/settings",
-        "essentials/navigation",
-        "essentials/reusable-snippets"
+        "ivr-types/custom-ivr-types"
       ]
     },
     {
-      "group": "API Documentation",
+      "group": "Miscellaneous",
       "pages": [
-        "api-reference/introduction"
+        "miscellaneous/http-status-code",
+        "miscellaneous/dialpad-status"
       ]
     },
     {
-      "group": "Endpoint Examples",
+      "group": "API References",
       "pages": [
-        "api-reference/endpoint/get",
-        "api-reference/endpoint/create",
-        "api-reference/endpoint/delete"
+        "api-references/sms-api",
+        "api-references/stats-api-dialpad-analytics"
+      ]
+    },
+    {
+      "group": "Change Logs",
+      "pages": [
+        "change-logs/change-log-events",
+        "change-logs/change-log-action-types"
+      ]
+    },
+    {
+      "group": "Introduction",
+      "pages": [
+        "introduction/welcome",
+        "introduction/guidelines",
+        "introduction/publish-your-app"
+      ]
+    },
+    {
+      "group": "Policies & Compliance",
+      "pages": [
+        "policies-&-compliance/access-control-policies",
+        "policies-&-compliance/rate-limits",
+        "policies-&-compliance/a2p-compliance"
+      ]
+    },
+    {
+      "group": "App Integration",
+      "pages": [
+        "app-integration/app-launch-urls",
+        "app-integration/dialpad-mini-dialer",
+        "app-integration/call-routing-via-apis"
+      ]
+    },
+    {
+      "group": "Authentication",
+      "pages": [
+        "authentication/authentication-basics",
+        "authentication/api-key-generation",
+        "authentication/oauth"
+      ]
+    },
+    {
+      "group": "AI and Automation",
+      "pages": [
+        "ai-and-automation/ai-agent-assist",
+        "ai-and-automation/digital-engagement-api",
+        "ai-and-automation/call-events",
+        "ai-and-automation/sms-events",
+        "ai-and-automation/contact-events",
+        "ai-and-automation/agent-status-events"
       ]
     }
   ],
   "footerSocials": {
-    "x": "https://x.com/mintlify",
-    "github": "https://github.com/mintlify",
-    "linkedin": "https://www.linkedin.com/company/mintsearch"
+    "facebook": "https://www.facebook.com/Dialpadhq/",
+    "twitter": "https://twitter.com/dialpad",
+    "linkedin": "https://www.linkedin.com/company/dialpad"
   }
 }

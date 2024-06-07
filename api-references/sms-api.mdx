@@ -1,0 +1,25 @@
+---
+title: "SMS API Details"
+description: "Additional details about the SMS API including MMS and file size limits"
+---
+This page provides additional details about the [SMS API](/reference/smssend)
+.
+
+## MMS
+
+*   Supported file type
+
+![](https://files.readme.io/4102412-Screen_Shot_2021-09-27_at_1.56.41_PM.png)
+
+*   File Size limit: MMS between Dialpad user and PSTN (i.e. external contacts) is limited to 1MB for both images and video. Among Dialpad users, the size limit is 32MB. Requests with file size larger than the limit will receive HTTP 400.
+
+## FAQ
+
+### How to send a multiple-line text?
+
+Multiple-line text can be achieved by using `\n` in the `text` field of the API payload (e.g. "line one \\nline two!"). Such sms could be rendered as multiples lines in the Dialpad App (if the recipient is a Dialpad user) and iOS message app, but people have reported in the past the `\n` does not work on Android. But this is out of our control because it really depends on the recipient’s device to render multiple lines or not when it see `\n` in the sms. If you really want the multiple line to work, you probably can try breaking it into multiple single-line sms and send them using the sms API sequentially.
+
+### How to be A2P compliant?
+
+See [https://developers.dialpad.com/docs/a2p-compliance](/docs/a2p-compliance)
+ for details.

@@ -1,0 +1,53 @@
+---
+title: "Title goes here"
+description: "Description goes here"
+---
+# Introduction
+
+Stats APIs are composed of two methods, a [POST](/reference/statscreate)
+ and a [GET](/reference/statsget)
+. The POST is used to initiate the processing of a report and the GET is used to obtain the report once it's done processing.
+
+The result of Stats API processing is a CSV file and analogous to what's available through [https://dialpad.com/analytics](https://dialpad.com/analytics)
+
+# Analytics Glossary
+
+More information about Dialpad Analytics, concepts, fields, values can be found in our Help Center articles. These same concepts apply to the reports obtained via Stats API.
+
+[Analytics Key Concepts](https://help.dialpad.com/docs/analytics-key-concepts)
+
+[Export Your Analytics Data](https://help.dialpad.com/docs/export-your-analytics-data)
+
+[Read Your Exported Analytics](https://help.dialpad.com/docs/read-your-exported-analytics)
+
+# Stats API Concepts and Best Practices
+
+**Export\_Type and Stat\_Type:**  
+There are two main types of exports (export\_type), records and stats.
+
+Stats provides a statistics output with aggregated data depending on the type of data selected (stat\_type), for instance the number of abandoned, answered and missed calls for all agents that belong to a certain call center (stat\_type = calls).
+
+Records provides the information related to each instance of the type of data selected, one per row, for instance, exporting all calls made to a certain office will contain one record for each call by Call ID and the associated data.
+
+**Office\_ID and Target\_ID:**  
+When exporting data for a target, only the data associated with that target will be exported. For instance, when requesting all calls for target\_type = office and target\_id = 123456 only the calls made to the phone lines associated with that office will be returned. Same for call centers and departments. Office\_id can be used as a way to combine reports for all eligible targets under that office, without supplying the target information, for instance, export all agent activity (stat\_type = onduty) providing an office\_id will return onduty statistics for all agents under that office structure, regardless of which call centers they are in, while specifying the target to be the call center will only return onduty for the agents of that call center instead. Target will always override office\_id.
+
+**Is\_Today and Days\_Ago:**  
+When is\_today is used Dialpad will query 'real time' tables that are refreshed every 30 minutes, while days\_ago parameters will query historical tables that are only updated every few hours (4-5).  
+Is\_today will override days\_ago parameters.  
+Dialpad suggests to use is\_today when querying current day data and days\_ago for historical data, such as yesterday, last two days, week, month.  
+The minimum accepted value for days\_ago is 0 (today). Days\_ago\_start = 0 and days\_ago\_end = 0 will behave the same as is\_today = true.
+
+**Cached Results:**  
+Every time a new POST request is executed successfully, Dialpad will return an ID that can be exchanged via GET to obtain the CSV output. Dialpad will cache the requests to avoid repeated/duplicate processing and also cache the results once they are available.  
+Requests with is\_today = true, the results are cached for 30 minutes. The client has 30 minutes to retrieve the results and new POST requests with the same parameters will not generate new results.  
+Requests with days\_ago are cached for 3 hours and the client has that long to retrieve the data. Dialpad will only process new POST requests with the same exact parameters after the 3 hours or if the results failed to be generated.
+
+**Timezones:**  
+Timezones value must be a tz database name. Reference [here](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones)
+.
+
+**General Best Practices:**  
+After generating a new export via POST, please wait 15-20 seconds before hitting the GET API. Processing times will vary depending on the amount of days requested.  
+If your data is not ready yet, please retry every 5 or 10 seconds. Do not retry every second as this API is rate limit sensitive.  
+Once a new report is generated via POST, avoid sending repeated POST requests with the same parameters. Dialpad will not process repeated requests but they will count towards your rate limit. Please wait for the request to complete or fail before retrying.

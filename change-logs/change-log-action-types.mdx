@@ -1,0 +1,98 @@
+---
+title: "Change Log Events"
+description: "Fields and action types for change log events"
+---
+Change log events contain the following fields to describe the change: action, note, and additional data. For more information about subscribing to change log events, see [here](/docs/change-log-events)
+.
+
+The following table lists the action types you may encounter, along with an example of the note and additional data structure associated with the action. The values are subject to some variation and change.
+
+> ## 📘Proxying
+> 
+> Change logs triggered while a superuser is proxying will have `PROXYING AS xxx@xxx |` prepended to the beginning of the note. The change will be accredited to superuser unless it was a Dialpad employee who conducted the change.
+
+Table last updated March 7th, 2023.
+
+| Action (string) | Note (string) | Additional Data (json) |
+| --- | --- | --- |
+| add\_team\_members | Blocked new invite because the account already invited 5 users... | {"0": "xx@xx"} |
+| add\_vm\_fax\_subscriber | Updated group \| params: \["add\_vm\_fax\_subscriber", {"email": "xx@xx", "subscriptions": {"vmSubscribed": true, "faxSubscribed": false}}\] | `{ "email": "xx@xx", "name": "xx", "subscriptions": { "faxSubscribed": false, "vmSubscribed": true } }` |
+| admin\_call\_recording\_override | Update user call recording to on | {"from": "inherit upper level", "to": "on"} |
+| admin\_call\_recording\_turned\_off | Updated group \| params: \["admin\_call\_recording", "false"\] | null |
+| admin\_call\_recording\_turned\_on | Updated group \| params: \["admin\_call\_recording", "true"\] | null |
+| assistant\_added | Staff request: principal operator activate: False feed\_acess: \[u'VoiceRecording', u'CallRecording', 'Call'\] | null |
+| auto\_hold\_max\_changed | Room Edited: \| params: \["auto\_hold\_max", 29\] | {"auto\_hold\_max": 29, "room\_name": "xx"} |
+| auto\_hold\_seconds\_changed | Room Edited: \| params: \["auto\_hold\_seconds", 120\] | {"auto\_hold\_seconds": 120, "room\_name": "xx"} |
+| change\_retention\_policies | change history\_retention\_days to 14. | {"from": {"history\_retention\_days": null, "retention\_policies": \[\]}, "to": {"history\_retention\_days": 14, "retention\_policies": \["archive\_feed"\]}} |
+| changed\_allow\_pause\_vi | Allow pause vi set to on | {"to": true} |
+| changed\_announce\_callai | Play announcement set to on | {"to": true} |
+| changed\_auto\_start\_vi | Auto start vi set to off | {"to": false} |
+| changed\_cc\_service\_level | Changed service level % threshold to 8 | {"from": 95, "to": "8"} |
+| changed\_cc\_service\_level\_seconds | Changed service level max seconds to 15 | {"from": 3, "to": "15"} |
+| changed\_company\_callai | Toggled CallAI for company to True | {"to": true} |
+| changed\_hold\_music | null | {"to": "default"} |
+| changed\_name | null | {"from": "xx", "to": "xx"} |
+| changed\_show\_realtime\_vi | Show real-time vi set to off | {"to": false} |
+| changed\_vi\_override | Vi override set to on | {"to": true} |
+| clone\_contact\_center | New group "xx" cloned from \| params: \["dest\_office\_key", ""\]"add\_selected\_operators", \["", ""\]\]\["src\_group\_key", ""\]\["name", "xx"\]\["description", ""\] | {"name": "xx"} |
+| cnam\_bulk\_update | CNAM Update : Uploaded CNAM via csv | "\[{"caller\_name\_info": "xx", "dids": \["+xx"\]}, {"caller\_name\_info": "xx", "dids": \["+xx"\]},\]" |
+| custom\_holiday\_created | Created custom holiday: xx | {"name": "xx", "recur\_type": "no\_repeat", "start\_on": "2023-03-03", "target\_key": "OfficeGroup:00"} |
+| custom\_holiday\_deleted | Deleted custom holiday: xx | null |
+| custom\_holiday\_updated | Updated custom holiday: xx | {"name": "xx", "recur\_type": "no\_repeat", "start\_on": "2022-03-21"} |
+| delete\_vm\_fax\_subscriber | Updated group \| params: \["delete\_vm\_fax\_subscriber", "xx@xx"\] | {"name": "xx"} |
+| deleted\_user | User deleted: xx@xx | null |
+| device\_added | Device Added: None \| params: \["display\_name", "xx"\]\["client\_id", "xx"\]\["device\_model", "xx"\]\["target\_key", "<key>"\]\["request\_code", true\]\["byod", true\]\["first\_time", true\]\["type", "obi"\] | {"device\_id": "+xx-user-00-xx", "display\_name": "xx"} |
+| device\_deleted | Device Deleted: | {"device\_id": "", "display\_name": null} |
+| do\_auto\_hold\_changed | Room Edited: \| params: \["do\_auto\_hold", true\] | {"do\_auto\_hold": true, "room\_name": "xx"} |
+| e911\_responder\_added | E911 responsder added \| params: \["phone\_number", ""\]\["notify\_by", {"message": true, "call": true, "email": true}\]\["display\_name", "xx"\]\["email", "xx@xx"\] | {"responders": {"contact\_key": "", "display\_name": "xx", "email": "xx@xx", "notify\_by": {"call": false, "email": true, "message": false}}} |
+| e911\_responder\_updated | E911 responsder updated \| params: \["phone\_number", "+xx"\]\["notify\_by", {"message": true, "call": true, "email": true}\]\["contact\_key", ""\]\["display\_name", "xx"\]\["email", "xx@xx"\] | {"responders": {"contact\_key": "", "display\_name": "xx", "email": "xx@xx", "notify\_by": {"call": true, "email": true, "message": true}, "phone\_number": "+xx"}} |
+| e911\_updated | PATCH /api/e911address/e911_target_ \| params: \["city", "xx"\]\["zip", "xx"\]\["country", "us"\]\["address2", ""\]\["computed\_id", ""\]"locations", \[{"city": "xx", "zip": "xx", "address1": "xx", "address2": "", "address": "xx, "target\_id": "", "US": true, "record\_type": "", "state": "IL", "country": "us", "ss\_code": "N"}\]\]\["US", true\]\["target\_id", "<key>"\]\["record\_type", ""\]\["state", "xx"\]\["target\_key", ""\]\["company\_name", ""\]\["address", "xx"\]\["ss\_code", "N"\]\["address1", "xx"\]\["id", "<key>"\] | {"address": "xx", "address2": "", "city": "xx", "country": "us", "state": "xx", "target\_key": "", "zip": "xx"} |
+| edit\_label | Did Edited to : 000 \| params: \["edit\_label", true\]\["label", ""\] | {"uber\_phone": "+xxx"} |
+| executive\_added | Staff request: principal operator activate: True feed\_acess: \[u'Call', u'CallRecording', u'CallTranscription', u'VoiceRecording'\] | null |
+| export\_report | POST /api/stats/export | {"all-company": false, "all-office": null, "end\_day": 46, "export-type": "records", "start\_day": 46} |
+| failover\_phone\_added | Updated group \| params: \["failover\_type", "phone"\]\["failover\_phone", "+xxx"\] | {"failover\_phone": "+xxx", "failover\_type": "phone", "name": "xxx"} |
+| failover\_phone\_removed | Updated group \| params: \["failover\_type", ""\]\["failover\_phone", null\] | {"failover\_phone": null, "failover\_type": "", "name": "xxx"} |
+| fax\_added | Fax line +xxx added \| params: \["target\_key", ""\]\["force\_purchase", false\]\["area\_code", ""\]\["license\_count", {}\]\["license\_availability", {"fax\_lines": 1}\]\["fax\_phone", "+xxx"\]\["country", ""\] | {"fax\_number": "+xxx"} |
+| fax\_removed | Fax line +xxx removed | {"fax\_number": "+xxx"} |
+| group\_deleted | Group deleted | {"name": "xxx"} |
+| group\_reordered | Re-ordered group \| params: \["operators", \["",""\]\] | {"group\_operators": \["xx xx", "xx xx"\]} |
+| group\_updated | Updated group \| params: \["office\_settings", {"duty\_status\_reasons": {"unavailable": \[{"type": null, "name": "xxx"}, {"type": null, "name": "xxx"}, {"type": null, "name": "xxx"}, {"type": null, "name": "xxx"}, {"name": "xxx"}\]}}\] | {"name": "xxx", "office\_settings": {"duty\_status\_reasons": {"unavailable": \[{"name": "xxx", "type": null}, {"name": "xxx", "type": null}, {"name": "xxx", "type": null}, {"name": "xxx", "type": null}, {"name": "xxx"}\]}}} |
+| holiday\_observed | Observed holiday: Labor Day | {"group\_id": "", "hours": \["closed", "18:00"\], "recur\_event\_id": 000, "recur\_event\_key": "", "routing\_options": {"closed": {"action": "voicemail", "action\_target": null, "default\_dtmf": null, "dtmf": {}, "operator\_routing": "longestidle", "try\_dial\_operators": false}, "open": {"action": "voicemail", "action\_target": null, "default\_dtmf": null, "dtmf": {}, "operator\_routing": "longestidle", "try\_dial\_operators": true}}} |
+| holiday\_routing\_updated | Updated holiday routing for: xxx | {"group\_id": "", "hours": \["00:00", "00:00"\], "recur\_event\_id": 000, "recur\_event\_key": "", "recur\_event\_name": "xxx", "routing\_options": {"closed": {"action": "voicemail", "action\_target": null, "default\_dtmf": null, "dtmf": {}, "operator\_routing": "simultaneous", "try\_dial\_operators": false}, "open": {"action": "voicemail", "action\_target": null, "default\_dtmf": null, "dtmf": {}, "operator\_routing": "simultaneous", "try\_dial\_operators": true}}} |
+| holiday\_unobserved | Unobserved holiday: 2022/12/30 | null |
+| live\_coaching\_turned\_off | Updated group \| params: \["allow\_department\_admin\_eavesdrop", false\] | null |
+| live\_coaching\_turned\_on | Updated group \| params: \["allow\_department\_admin\_eavesdrop", true\] | null |
+| make\_did\_primary | Updated group \| params: \["make\_did\_primary", "+xxx"\] | {"name": "xxx", "primary\_phone": "+xxx"} |
+| name\_changed | Room Edited: \| params: \["name", "xxx"\] | {"name": "xxx", "room\_name": "xxx"} |
+| new\_contact\_center | New group added "xxx" \| params: \["group\_description", "xxx"\]\["type", "call\_center"\]\["name", "xxx"\] | {"name": "xxx"} |
+| new\_department | New group added "xxx" \| params: \["group\_description", ""\]\["name", "xxx"\] | {"name": "xxx"} |
+| new\_ivr | Updated IVR \| params: \["file", {"enforced\_type": "audio/mpeg"}\]\["enforced\_type", "audio/mpeg"\]\["target", ""\]\["blob\_key", "<key>"\]\["filename", "xxx.mp3"\]\["ivr\_type", "GREETING"\]\["content\_type", "audio/mpeg"\]\["gcs\_filename", "xxx"\] | {"ivr\_name": "xxx.mp3"} |
+| number\_assigned | Assigned DID: \[{'email': xxx@xxx', 'assigned\_did': {'display\_number': u'xxx', 'last\_target': {'display\_name': u'xxx', 'type': u'call\_center', 'date\_reserved': 000}, 'id': u'+xxx'}}\] | {"0": {"assigned\_did": {"display\_number": "(xxx) xxx-xxx", "id": "+xxx", "last\_target": {"date\_reserved": 000, "display\_name": "xxx", "type": "call\_center"}}, "email": "xxx@xxx"}} |
+| number\_edited | Did Edited to : 000 \| params: \["status", "group"\]\["force\_purchase", false\]\["label", ""\]\["license\_count", {}\]\["device\_data", "{"device\_session\_id":"","fraud\_merchant\_id":null}"\]\["license\_availability", {"group\_lines": 57}\] | {"uber\_phone": "+xxx"} |
+| number\_removed | Removed DID: \[\] | {"dids": \[\]} |
+| office\_changed | Office changed from xxx to xxx | null |
+| operator\_added | Operator added | {"name": "xxx", "operator\_name": "xxx", "role": "operator"} |
+| operator\_admin\_permission\_added | Operator added admin permissions for \| params: \["make\_admin", true\]\["can\_edit", null\] | {"name": "xxx", "operator\_name": "xxx"} |
+| operator\_admin\_permission\_removed | Operator removed admin permissions for \| params: \["make\_admin", false\] | {"name": "xxx", "operator\_name": "xxx"} |
+| operator\_group\_status\_changed | Operator changed status to available \| params: \["status", "available"\] | {"name": "xxx", "operator\_name": "xxx", "status\_changed\_to": "available"} |
+| operator\_removed | Operator removed | {"name": "xxx", "operator\_name": "xxx"} |
+| operator\_skill\_level\_edited | Operator changed skill level for group to 100 | {"name": "xxx", "operator\_name": "xxx", "skill\_level": 100} |
+| operator\_status\_changed | Operator changed status to available \| params: \["status", "available"\] | {"name": "xxx", "operator\_name": "xxx", "status\_changed\_to": "available"} |
+| removed\_ivr | Remove IVR 000 | {"ivr\_name": "xxx"} |
+| room\_added | Room added: 000 \| params: \["name", "xxx"\] | {"room\_name": "xxx"} |
+| room\_deleted | Room Deleted: | {"room\_name": "xxx"} |
+| room\_edited | Room Edited: \| params: \["caller\_id\_override", "+xxx"\]\["international\_calling\_disabled", false\]\["external\_calling\_disabled", false\]\["name", "xxx"\]\["caller\_id", ""\]\["no\_answer\_action", "message"\] | {"caller\_id": "", "caller\_id\_override": "+xxx", "external\_calling\_disabled": false, "name": "xxx", "no\_answer\_action": "message", "room\_name": "xxx"} |
+| set\_csat\_survey | Updated group \| params: \["set\_csat\_survey\_id", ""\] | {"name": "xxx"} |
+| set\_custom\_background | Updated group \| params: \["custom\_background\_image", ""\] | {"name": "xxx"} |
+| set\_custom\_logo | Updated group \| params: \["custom\_logo\_image", ""\] | {"name": "xxx"} |
+| set\_spam\_action | Updated group \| params: \["spam\_action", ""\]\["spam\_type", "unknown"\] | {"name": "xxx", "spam\_action": null, "spam\_threshold": 90} |
+| suspended\_user | User suspended. Email: xxx@xxx | null |
+| swap\_primary\_number | Did Edited to : 000 \| params: \["swap\_primary", true\] | {"uber\_phone": "+xxx"} |
+| updated\_ivr | Updated IVR \| params: \["ivr\_type", "xxx"\]\["custom\_ivr\_details\_id", 000\]\["dtmf\_option", 5\]\["target", "<key>"\]\["event\_key", ""\] | {"ivr\_name": "xxx.mp3"} |
+| user\_added | User added: xxx@xxx | null |
+| verified\_phone\_added | Verified Phone added (xxx) xxx xxx | {"number": "(xxx) xxx xxx"} |
+| verified\_phone\_deleted | PROXYING AS xxx@xxx \| Verified Phone added (xxx) xxx xxx | {"number": "(xxx) xxx xxx"} |
+| verified\_phone\_removed | Verified Phone added (xxx) xxx-xxx | {"number": "(xxx) xxx-xxx"} |
+| null | User changed \| params: \["parameter name", "new value"\] | null |
+| null | License type set to xxx | null |
+| null | Room Edited: \| params: \["unreserve\_pending\_dids", true\] | {"room\_name": "xx"} |

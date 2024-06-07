@@ -1,0 +1,152 @@
+---
+title: "Title goes here"
+description: "Description goes here"
+---
+> ## 🚧Under Construction
+> 
+> Dialpad is constantly updating this feature. Please reach out to us at `api@dialpad.com` should you encounter any issues
+> 
+> "hid" access will need to be added to your Dialpad iframe by end of Jan 2023. Please refer to the Loading the CTI section for more details.
+> 
+> As Google phased out third-party cookies, we have changed the way of login on CTI. Please reach out to us if you have any issue.
+
+## Introduction
+
+Dialpad's CTI (mini dialer) provides key features of Dialpad's desktop app - calling and messaging - in a version that can be rendered on Google Chrome. The CTI can be opened in an iframe inside a logged in site. This section describes the steps in which the CTI can be setup and the JavaScript methods that can be used for communicating between your application and the CTI iframe.
+
+## Setting up the CTI
+
+The CTI will be hosted on Dialpad and instantiated in an iframe on your logged in website. To setup the CTI, please submit [this form](https://airtable.com/shrwjHha2sJxO72Ag)
+ and include the following details
+
+**Allowed Origins**
+
+These are URLs that Dialpad would add to its allow list for accepting Javascript commands. For instance, if the CTI would be rendered in an iframe within example.com, then the domain example.com would need to be specified. Wildcards are also accepted on the left and rightmost position of the uri.
+
+**Additional Headers**
+
+Specify custom headers for the iframe using a JSON body.
+
+## Loading the CTI
+
+Once the CTI instance is setup by the Dialpad team, a client ID would be provided to you. This ID will be used to load the CTI at the URL `https://dialpad.com/apps/<ClientID>`. While loading the CTI, please allow microphone, autoplay, camera, display capture **and hid** accesses.
+
+For example
+
+```
+<iframe src="https://dialpad.com/apps/clientID" title="Dialpad" allow="microphone; speaker-selection; autoplay; camera; display-capture; hid" sandbox="allow-popups allow-scripts allow-same-origin" frameborder=0 style="width:400px; height:520px;"></iframe>
+
+```
+
+When a user would have to login to Dialpad when the CTI is first loaded or after every time the user logs out of Dialpad.
+
+**Note: "hid" access will need to be added to your Dialpad iframe by end of Jan 2023.**
+
+## Supported JavaScript Methods
+
+We support a few JS methods through the `window.postMessage()` method by using the [postMessage API](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage)
+.
+
+Field definition for the `window.postMessage()` method:
+
+| Field | Type | Required? | Description |
+| --- | --- | --- | --- |
+| `api` | string | true | This specifies the name of the API and should be defaulted to `opencti_dialpad` |
+| `version` | string | true | The version of the API. It should be defaulted to `1.0` |
+| `method` | string | true | The name of the method. We support the following methods:    1\. When message is received by the CTI: `initiate_call`, `enable_current_tab`    2\. When message is sent from CTI: `call_ringing`, `user_authentication`. |
+| `payload` | JSON | false | Parameters and their values that are needed when using the JS API method.  Payload is not required in method `enable_current_tab` |
+
+The methods supported by Dialpad at this time are listed below
+
+### user\_authentication
+
+This message is posted by Dialpad when the authentication state of a user in the Dialpad CTI changes. The payload parameters of this message are:
+
+| Parameter | Description |
+| --- | --- |
+| `user_authenticated` | If the user is logged in, `true` is passed, else `false` |
+| `user_id` | Dialpad ID (long) of the user that is logged in/out |
+
+Example: Dialpad will post such message to the component that embeds the CTI through this way
+
+```javascript
+window.parent.postMessage({
+  'api': 'opencti_dialpad',
+  'version': '1.0',
+  'method': 'user_authentication',
+  'payload': {
+    'user_authenticated': true,
+    'user_id': 1234567
+  }
+}, '*');
+
+```
+
+### enable\_current\_tab
+
+This message is posted to Dialpad. Dialpad allows only one CTI tab to be enabled at a time to make and receive calls. This method allows the tab to enable the CTI for calling. There is no payload for this method.
+
+Example:
+
+```javascript
+<CTI_iframe>.contentWindow.postMessage({
+  'api': 'opencti_dialpad',
+  'version': '1.0',
+  'method': 'enable_current_tab'
+}, 'https://dialpad.com');
+
+```
+
+### initiate\_call
+
+This message is posted to Dialpad. The `initiate_call` method opens up the dial prompt in the CTI window and an outbound call will be made automatically if the CTI tab is enabled. If the CTI tab is disabled, this method will enable this tab. The following parameters are supported with this method
+
+| Parameter | Required | Description |
+| --- | --- | --- |
+| `enable_current_tab` | false | Indicates whether the current tab should be enabled before initiating the call. Default to `true` |
+| `phone_number` | true | Phone number in E.164 format |
+| `identity_type` | false | Initiate calls through groups (Office, Department, or Call Center). The specified values are    Office - `Office`  Department - `OfficeGroup`  Call Center - `CallCenter` |
+| `identity_id` | false but required if `identity_type` is included | The office, department, or call centre ID |
+| `custom_data` | false | Data to associate with the call. This data is passed back in call events. Maximum 2000 characters. |
+| `outbound_caller_id` | false | Can be used instead of identity\_type and identity\_id to determine the target of the call. Defaults to Identity\_id if used together. |
+
+Example:
+
+```javascript
+<CTI_iframe>.contentWindow.postMessage({
+  'api': 'opencti_dialpad',
+  'version': '1.0',
+  'method': 'initiate_call',
+  'payload': {
+    'enable_current_tab': false,
+    'phone_number': '+15555555555',
+    'identity_type': 'CallCenter',
+    'identity_id': 1234567,
+    'custom_data': 'any string'
+    'outbound_caller_id': '+18005550970',
+  }
+}, 'https://dialpad.com');
+
+```
+
+### call\_ringing
+
+This message is posted by Dialpad when an inbound call starts or finishes ringing. Use this message to open the CTI window for the user to answer the call. The payload of this method has the following parameter:
+
+| Parameter | Description |
+| --- | --- |
+| `state` | Set to `on` when the call starts ringing and to `off` when the ringing ends. Two messages are sent per call. |
+
+Example: Dialpad will post such message to the component that embeds the CTI.
+
+```javascript
+window.parent.postMessage({
+  'api': 'opencti_dialpad',
+  'version': '1.0',
+  'method': 'call_ringing',
+  'payload': {
+    'state': 'on'
+  }
+}, '*');
+
+```

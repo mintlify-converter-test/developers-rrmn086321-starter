@@ -1,0 +1,272 @@
+---
+title: "Introduction"
+description: "Overview of Dialpad's Routing APIs for direct prospect calls."
+---
+## Introduction
+
+Suppose you have a Sales representative that's been engaged in conversations with a prospect for the past month for a giant deal. Wouldn't it be great if when the prospect calls back on the company mainline, the call goes directly to the representative instead of sending them through an IVR? Along with showing the prospect that they're being given extra attention, it would also help the sales continue conversations with ease.
+
+Dialpad's Routing APIs allow you to do just that! With these APIs, you can have total control over where each inbound call is routed, whether it's though our standard routing mechanisms in a Department or Call Centre, or whether it's sent through directly to a User. This document describes the basics of call routers, the steps needed to setup these call routers and the expected responses.
+
+## How Call Routing Works
+
+![](https://files.readme.io/08fa061-Call_Router_API.png)
+
+The above diagram illustrates the working of a call router. Once a router is setup, call information is published to a specified URL. The third party then uses that data to generate routing information for that call. The call is then routed to the appropriate user or department or call centre. In the above example, the call was routed to a user. However, the system is flexible to route calls to a department or call centre depending on the call.
+
+## Creating the Call Router
+
+To create a call router, invoke the `POST callrouters` [method](/reference/callrouterscreate)
+.
+
+| Field | Type | Required? | Description |
+| --- | --- | --- | --- |
+| `name` | string | true | Specify a name for the call router |
+| `routing_url` | string (URL) | true | The URL that should be consulted to route calls |
+| `secret` | string | false | A [JWT](https://jwt.io/) secret to be used |
+| `office_id` | string | true | The office to which the call router belongs |
+| `default_target_id` | string | true | The fallback target to be used in case of client server unavailability |
+| `default_target_type` | string | true | The type associated with the default\_target\_id (i.e. office, department, callcenter, or user) |
+| `enabled` | boolean | false | Set to `true` as default. If set as `false`, the call router will act as pass through to the office mainline |
+
+Note: For Geo Routers please refer to this [Help Center article](https://help.dialpad.com/docs/geographic-routing)
+. Geo Routers are not accessible via API.
+
+e.g.
+
+```python
+import requests
+
+url = "https://dialpad.com/api/v2/callrouters"
+
+payload = '''{
+  "default_target_id": "123456",
+  "default_target_type": "callcenter",
+  "name": "Hello Router",
+  "office_id": "223456",
+  "routing_url": "https://yourroutingservice.com/routecall",
+}'''
+
+headers = {
+  'accept': "application/json",
+  'content-type': "application/json"
+}
+
+response = requests.request("POST", url, data=payload, headers=headers)
+
+```
+
+Upon successful creation of the call router, the following response is sent
+
+```
+{
+  “id”: “generated id”,
+  “name”: “name”,
+  “routing_url”: “routing_url”,
+  “office_id”: “office_id”,
+  “default_target_id”: “12341234”,
+  “default_target_type”: “callcenter”,
+  “enabled”: true,
+  “phone_numbers”: [“e164 number”, ...],
+  “signature”: {
+    “type”: “jwt”,
+    “algo”: “HS256”,
+    “secret”: “secret”
+  }
+}
+
+```
+
+To set a phone number for the call router, invoke the `POST callrouters/id/assign_number` [method](/reference/numbersassign_call_router_numberpost)
+. **This number should be provided to your customers.** Please ensure the office has available `Additional Number` licenses for phone numbers to be assigned.  
+e.g.
+
+```python
+import requests
+
+url = "https://dialpad.com/api/v2/callrouters/323456/assign_number"
+
+headers = {
+  'accept': "application/json",
+  'content-type': "application/json"
+}
+
+response = requests.request("POST", url, headers=headers)
+
+```
+
+## Providing Routing Information to the Call Router
+
+Once a call comes into the number assigned to the call router, a JWT will be POST-ed to the `routing_url` . The JSON content of the JWT will be of the form:
+
+```
+{
+  “date_started”: <ms_since_epoch>,
+  “call_id”: <call_id>,
+  “external_number”: “<e164 number>”,
+  “internal_number”: “<e164 number>”,
+  “contact_id”: <contact_id>,
+  “contact_type”: <contact_type>,
+}
+
+```
+
+The `external_number` will contain the number of the caller.
+
+## Allowed Actions
+
+Based on the information provided to the URL, you can instruct the call router to take one of four actions. By default the action is assumed to be the `route` action, so to trigger a different action you must specify the desired action in the `action` field of the response payload.
+
+| Field | Type | Required? |
+| --- | --- | --- |
+| `action` | One of: `"route"`, `"forward"`, `"ask"`, `"end"` | false |
+
+### Route Action
+
+The `route` action will route the call to the specified target. Use the `route` to transfer the call to a Dialpad target.
+
+| Field | Type | Required? | Description |
+| --- | --- | --- | --- |
+| `target_id` | integer | true | The ID of the Dialpad target that should receive the call |
+| `target_type` | string | true | The type associated with the target\_id (i.e. office, department, callcenter, or user) |
+
+### Forward Action
+
+The `forward` action connects the call to a number that is not in Dialpad.
+
+| Field | Type | Required? | Description |
+| --- | --- | --- | --- |
+| `forward_to` | string | true | The number to forward to in E.164 format as a string ie. `"+14155552671"` |
+
+### Ask Action
+
+In some scenarios, the ideal routing behaviour may be more complex than just dynamically forwarding a call. It may be desirable to ask the caller to choose between several options and make additional routing decision based on their response. It may also be desirable to play an audio clip to the caller and end the call (e.g. "Our office is currently closed. Please call back between 9 to 5 on a weekday"). This can be achieved using the `ask` action.
+
+An `ask` action will ask the caller a specified question via a synthesized text-to-speech audio clip. The caller will be allowed to enter a response via their number pad. After an `ask` action is completed, your routing endpoint will receive an additional request to allow it to take an additional action based on the caller's response. That information will be included in the post-`ask` routing request in the form of a string containing the keys that the caller pressed. The `hint_name` you provide will be the field in which the caller's response will appear in the post-`ask` routing request.
+
+| Field | Type | Required? | Description |
+| --- | --- | --- | --- |
+| `message` | string or array | true | The message that should be played to the caller via text-to-speech  \*see additional considerations section |
+| `hint_name` | string | true | The field name in which to insert the caller's response in the subsequent routing request (more details below) |
+| `finish_on_key` | string | false | The key the caller should press to signal that they are finished inputting digits (by default, the input will conclude when the caller has pressed the number of digits specified in `num_digits`) |
+| `num_digits` | integer | false | The number of digits that the caller should enter  Allowed values: any positive integer (defaults to `99`) |
+| `valid_digits` | string | false | A string containing all keypad values that the caller can include in their response (defaults to `"0123456789*#"`)  (the default is the full set of possible digits) |
+| `retries` | integer | false | The number of times the audio prompt should be repeated to the caller if they don't press any buttons on their keypad  Allowed values: any positive integer (defaults to `10`) |
+| `timeout` | integer | false | The number of seconds to wait for the caller to press a button before repeating the prompt  Allowed values: any positive integer (defaults to `5`) |
+| `timeout_action` | string | false | The action to be taken if the caller does not provide any input after the max number of retries set. Set to `disconnect` by default.  [\*](#timeout-action-options) see additional options |
+| `locale` | string | false | The locale code to specify the region specific voice used for the text-to-speech audio (defaults to US English)  [\*](#supported-locales) see additional notes for currently supported locales |
+
+Using `ask` actions increases the potential complexity of your routing logic, especially if the routing flow contains multiple `ask` actions. A new request will be hitting the same routing endpoint for every step of the routing flow, which can be logistically challenging. Making good use of the `hint_name` field can significantly simplify the logistical challenge. If you use a distinct `hint_name` for each `ask` action in your routing flow, then you will be able to distinguish between the post-`ask` requests without needing any information other than the request itself. Choosing human-readable names can also improve debugging by making it easier to read and comprehend a series of routing requests.
+
+For very complex flows, it may even be helpful to break up the routing process into several parts, and handle each part with a different router. For example, one call router could serve as a single entry point for all the calls within a country, and could redirect the calls to region-specific call routers based on the area code of the caller. Since each router can specify its own routing URL, this strategy can be used to turn a single hard-to-understand routing endpoint into several easier-to-understand routing endpoints.
+
+The caller's response to `ask` actions will only be included in the routing request immediately after that action, rather than being carrying forward into every subsequent routing request for that call. By default, if the message repeats `retries` times without any response from the caller, the call will simply end, and there will be no subsequent routing request. You can alter this behaviour using the `timeout_action` field.
+
+#### Timeout action options
+
+The `timeout_action` field is an optional field that allows you to customize the call router's behaviour following the timeout event of the final retry. For example, if `retries` is set to `2` and `timeout` is set to `5`, the timeout action will be executed 5 seconds after the second prompt if the caller fails to respond.
+
+| Timeout option | Description |
+| --- | --- |
+| `"disconnect"` | Ends the call. (Default) |
+| `"default_target"` | Transfers the call to the call router's default target as set by `default_target_id` at call router creation. The target can be changed with [Call Router -- Update](/reference/callroutersupdate). |
+| `"custom"` | Fetches new instructions from the `routing_url`. |
+
+The `custom` option provides the most flexibility in terms of routing. The call router sends another payload to the specified routing url for ad hoc processing to calculate the best route for this call. In addition to the initial call information, this payload will include the hint name set by the previous `ask` action with an empty value and 2 custom headers: `DP-CALL-ROUTER-ASK-REATTEMPT-COUNT` and `DP-CALL-ROUTER-ASK-REATTEMPT-LIMIT`.
+
+| Header | Description |
+| --- | --- |
+| `DP-CALL-ROUTER-ASK-REATTEMPT-COUNT` | Indicates the number of times the caller has been prompted with an `ask`. |
+| `DP-CALL-ROUTER-ASK-REATTEMPT-LIMIT` | The number of times you may reattempt to retrieve a response with an `ask` for the same `hint_name`. Limit is 3. |
+
+```
+{
+  "date_started": <ms_since_epoch>,
+  "call_id": <call_id>,
+  "external_number": "<e164 number>",
+  "internal_number": "<e164 number>",
+  "contact_id": <contact_id>,
+  "contact_type": <contact_type>,
+  "<hint_name>": ""
+}
+
+```
+
+You may return `ask` instructions with the same `hint_name` and custom timeout action a max number of 3 times. Each time the set of instructions fails to receive a valid user response, `DP-CALL-ROUTER-ASK-REATTEMPT-COUNT` will increment. When `DP-CALL-ROUTER-ASK-REATTEMPT-COUNT` has incremented to 3, `timeout_action` will default to `disconnect` regardless of the option provided.
+
+The following diagram illustrates an example where `timeout_action` is leveraged to send a different message for the same information. When the caller fails to respond in the allotted time for a second time, the call is routed to the call router's default target to speak with a representative.
+
+![Timeout Action Example](https://files.readme.io/9418d73-Timeout_Action_Example_-_Page_2.png)
+
+### End Action
+
+An `end` action will play a synthesized text-to-speech audio clip and then hang up the call.
+
+| Field | Type | Required? | Description |
+| --- | --- | --- | --- |
+| `message` | string or array | true | The message that should be played to the caller via text-to-speech  \*see additional considerations section |
+| `locale` | string | false | The locale code to specify the region specific voice used for the text-to-speech audio (defaults to US English)  [\*](#supported-locales) see additional notes for currently supported locales |
+
+## Deleting Call Routers
+
+Call routers can be deleted by calling the `DELETE callrouters/id` [method](/reference/callroutersdelete)
+. Note that deletion takes effect immediately and would place the number assigned to the call router in reserve.
+
+## Error Handling
+
+If the endpoint takes more than 5 seconds to respond or if there are more than 10 failures in an hour, then the call router will be automatically disabled, and an email will be sent to the office admin. In order to rejuvenate the call router, it must be re-enabled via the `PATCH callrouters/id` [method](/reference/callroutersupdate)
+. In this situation, the first step will be to investigate and correct the underlying issue in your routing endpoint.
+
+#### Uniform Errors
+
+In many cases the issue will have a consistent source, and the error may be completely resolved once the issue is addressed. In this situation, the call router can simply be re-enabled the call router by setting the `enabled` property to `true` via the `PATCH` endpoint.
+
+#### Inconsistent Errors
+
+In some situations (such as performance issues that occasionally result in request latency greater than 5-seconds), your routing endpoint may still have occasional routing errors after applying a fix. In this situation, it may be desirable to re-enable the router **in addition to** resetting the internal error count. To accomplish this, you can make a `PATCH` request that includes `"reset_error_count": true, "enabled": true`.
+
+## Additional Notes
+
+#### Text-to-speech
+
+For best results with text-to-speech fields (i.e. the `message` field), the value should either be a single short string, or an array of short strings. When the Dialpad backend receives an `end` or `ask` action, it needs to take the message, synthesize it into an audio file, and then play that audio file to the caller. Text-to-speech is a computationally expensive operation, and in this context it needs to happen as quickly as possible. By allowing the input to be a list of strings, we can process _each_ string into an audio file _independently_. This means that playback can begin as soon as the first string has been processed, rather than blocking on processing the whole message.
+
+There is also a caching mechanism that helps reduce the playback latency. If Dialpad has seen a particular string before, then it likely already has an audio file in the cache that it can retrieve immediately.
+
+To leverage these mechanisms most effectively:
+
+*   The message should be split into small pieces whenever possible
+*   The _first_ string in a list of messages is the most important, since playback cannot begin until that string is processed.
+*   If the first string is always the same, Dialpad can make use of the audio file cache, so any dynamic strings should ideally come _after_ an initial static string, where the processing time is much less likely to matter.
+
+#### Supported locales
+
+Dialpad currently supports the following language specific voices to synthesize text-to-speech. If an invalid string is passed to the `locale` field with the `ask` or `end` action, the `message` will be synthesized using English (US). We will be expanding our language support in the future with customer demand.
+
+> ## 🚧Locale is not translation
+> 
+> Specifying the locale ensures that the text-to-speech message is generated with the preferred regional accent. It will not translate the message into the indicated language. Please pass in the translated phrase as `message` along with the `locale` code.
+
+| Locale code | Language |
+| --- | --- |
+| `de` | German |
+| `en` | English (US) |
+| `en-au` | English (Australia) |
+| `en-gb` | English (British) |
+| `es` | Spanish (US) |
+| `fr` | French |
+| `fr-ca` | French (Canadian) |
+| `it` | Italian |
+| `ja` | Japanese |
+| `nl` | Dutch |
+| `pt` | Portuguese (Brazilian) |
+| `ru` | Russian |
+| `zh` | Chinese, Mandarin |
+
+#### Call routers can be assigned multiple numbers.
+
+Using multiple numbers may be useful for assessing the efficacy of an ad campaign or providing separate numbers for support and sales. Your routing endpoint can use this information to make routing decisions, since the `internal_number` will indicate which number the caller dialled.
+
+#### Call routers can be configured to send JWT payloads for additional security.
+
+In order to verify that a routing request is genuine, you can set the `secret` property on the call router by using the `POST` or `PATCH` endpoints. If a call router is given a `secret`, then it will use that secret to send a signed JWT payload to your endpoint, rather than a raw JSON payload.

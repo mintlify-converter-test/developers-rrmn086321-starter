@@ -1,0 +1,144 @@
+---
+title: "Introduction"
+description: "OAuth for third-party integrations in Dialpad"
+---
+## Introduction
+
+OAuth should be used by application developers who wish to build an integration to be used across multiple companies in Dialpad. If you are an admin who is using the API for your own company only, you generally do not need to use OAuth, and may [create an API key](/docs/api-key-generation)
+ instead.
+
+OAuth gives a third party developer the ability to get a Dialpad token (API Key) on behalf of a Dialpad user. Generally you will create a _Login with Dialpad_ button on your site. After the user clicks the button and consents, you would be able to get an API key on behalf of the user.
+
+*   When the user clicks the _Login with Dialpad_ button, the following occurs:
+    *   Your site redirects the user to `https://dialpad.com/oauth2/authorize?.....`
+    *   If the user is not logged in to Dialpad, they will be prompted to login
+    *   After logging in, the user will be presented with a consent screen
+    *   After consenting, Dialpad redirects the user to the redirect\_uri (your site) and provides an auth code
+*   You use the auth code to acquire a Dialpad API key using a POST request against `https://dialpad.com/oauth2/token`
+
+## Setup
+
+In order to use OAuth you must first register an OAuth application with Dialpad. To register your application, please submit [this form](https://airtable.com/shrju5b3Sqebrmn96)
+. You will be asked to provide redirect URI(s) for the callback part of the OAuth flow and any special scopes you would like to use.
+
+After registering, you will be provided with a client ID and client secret. These will be required to perform the OAuth flow.
+
+### Redirect URIs
+
+Your application's redirect URI...
+
+*   may contain query parameters (we will pass these through intact and append our own).
+*   must not have a fragment identifier (`#` symbol in the URI).
+
+### Supported scopes
+
+By default, applications have a basic level of access to the user's Dialpad account. If additional access is required, the application can request specific scopes:
+
+`recordings_export`: Allows publishing of recording URLs in call events.  
+`message_content_export`: Allows export of SMS content for the authenticated user.  
+`message_content_export:all`: Allows export of company-wide SMS content.  
+`screen_pop`: Allows the use of the [screen pop API](/reference#screenpopapi_initiatescreenpop)
+.
+
+## Getting the API key
+
+Dialpad uses the "three-legged" OAuth authorization code flow, as defined in [RFC 6749 section 4.1](https://datatracker.ietf.org/doc/html/rfc6749#section-4.1)
+. Your service will need to expose a URI for Dialpad to redirect the user back to, and you will then need to perform a callback to Dialpad to receive their access token.
+
+### Step 1: Authorization request (kickoff)
+
+Your service redirects the user to Dialpad's _authorize_ endpoint. This usually happens when the user clicks a link or button to login with Dialpad on your site.
+
+The authorize endpoint is:
+
+*   _Sandbox_: `https://sandbox.dialpad.com/oauth2/authorize`
+*   _Production_: `https://dialpad.com/oauth2/authorize`
+
+with query parameters:
+
+*   (required) `response_type`: The literal string `code`.
+*   (required) `client_id`: Your application's client ID, as provided by Dialpad.
+*   (required) `redirect_uri`: The URI on your website that the user should be redirected back to (see step 2).
+*   (recommended) `state`: An unpredictable value (e.g. generated randomly at the start of the OAuth flow), used to prevent CSRF. You will need to remember your chosen value (e.g. using your application's user session) and check it in step 2.
+*   (optional) `scope`: Additional scopes to request (space separated). Scopes must be approved by Dialpad. Please reach out to `api@dialpad.com` if you don't already have them approved.
+
+### Step 2. Authorization response (redirect back)
+
+Once the user has consented to your application using their account, Dialpad will redirect them back to your application's `redirect_uri`, as given in step 1.
+
+We will append two query parameters to the URI:
+
+*   `code`: Temporary authorization code used to get an API key. Valid for 1 minute.
+*   `state`: The CSRF token you previously sent in step 1, for you you to validate.
+
+If the `state` parameter does not match the one you sent in step 1, do not continue. Otherwise, take the `code` parameter and proceed to step 3.
+
+### Step 3. Access token request/response
+
+Finally, your application converts the temporary authorization code into a Dialpad API key, by performing a callback to Dialpad's _token_ endpoint:
+
+*   _Sandbox_: `POST` to `https://sandbox.dialpad.com/oauth2/token`
+*   _Production_: `POST` to `https://dialpad.com/oauth2/token`
+
+POST body (x-www-form-urlencoded):
+
+*   (required) `grant_type`: The literal string `authorization_code`.
+*   (required) `code`: The temporary authorization code from step 2.
+*   (required) `client_id`: Your application's client ID, as provided by Dialpad.
+*   (required) `client_secret`: Your application's client secret, as provided by Dialpad.
+
+Dialpad's response (JSON object):
+
+```json
+{
+  "token_type: "bearer",
+  “access_token”: “<DIALPAD API KEY>”
+}
+
+```
+
+This API key can then be used as a bearer token to call the Dialpad API.
+
+In order to get the authenticated user information, you may use the get user API with “me” as the user id (GET [/api/v2/users/me](https://dash.readme.io/project/dialpad/v1.0/refs/userapi_getuser)
+).
+
+## Deauthorization
+
+Your application should provide a way for users to disconnect from your service. If that occurs, your application should revoke the user's OAuth tokens.
+
+*   _Sandbox_: `POST` to `https://sandbox.dialpad.com/oauth2/deauthorize`
+*   _Production_: `POST` to `https://dialpad.com/oauth2/deauthorize`
+
+If your application makes use of any event subscription features, it is also advisable to clean out any subscriptions that will no longer be needed, either by deleting them, or disabling them prior to revoking the user's tokens.
+
+The POST deauthorize endpoint should be called with the relevant bearer token authorization header an empty request body, which will revoke **all** API tokens that were vended to your app on behalf of the associated user.
+
+## Refresh the API key
+
+To exchange for a new access token and refresh token pair when existing access token has expired.
+
+*   Sandbox: POST [https://sandbox.dialpad.com/oauth2/token](https://sandbox.dialpad.com/oauth2/token)
+    
+*   Production: POST [https://dialpad.com/oauth2/token](https://dialpad.com/oauth2/token)
+    
+
+### Request body
+
+*   client\_id: Client ID provided by Dialpad, can also be provided in a basic authentication header
+*   client\_secret: Client secret provided by Dialpad, can also be provided in a basic authentication header
+*   grant\_type (required): 'refresh\_token'
+*   refresh\_token (required): The current refresh token which is being traded in for a new token pair.
+
+### Response
+
+```
+{
+  "refresh_token": "<DIALPAD REFERSH TOKEN>",
+  "access_token": "<DIALPAD NEW ACCESS TOKEN>",
+  "expires_in": 1680047149,
+  "token_type": "bearer",
+}
+
+```
+
+More details and reference can be found in the [API reference](/reference/oauth2tokenpost-1)

@@ -1,0 +1,58 @@
+---
+title: "Websocket Service"
+description: "Connect to Dialpad events via websockets"
+---
+This service allows connections to [Dialpad events](/docs/event-subscriptions)
+ using websockets, including from frontend applications. It provides the same events as the current webhook based event subscription service, without the need for your own webhook or backend service.
+
+> ## 📘Websocket Demo
+> 
+> A demo websocket application is available for [production (live)](https://storage.googleapis.com/websocket-demo/templates/home.html)
+>  and for [sandbox](https://storage.googleapis.com/websocket-demo/templates/beta.html)
+> .
+
+## Steps to use
+
+### 1\. Generate access token:
+
+You will need an access token to use our api and the event subscription logging for authentication. Please refer to the [authentication guide](/docs/authentication-basics)
+. You can use either api key or oauth token for the websocket service.
+
+### 2\. Create websocket and event subscriptions:
+
+Similar to event logging via webhook, you need to create a websocket entity and an event subscription via our api before logging.
+
+**Note**: You need to use the same `api_key` when create event subscriptions and connecting to the websocket.
+
+### 3\. Connection:
+
+> ## 🚧Connection Duration
+> 
+> The websocket connection will be disconnected after 1 hour to ensure connections remain secure.
+
+The URL patterns for websocket service are:
+
+Sandbox: wss://platform-websockets-5bwy6zprxa-uc.a.run.app/events/
+
+Production: wss://platform-websockets-6kqb5ajsla-uc.a.run.app/events/
+
+**Token**: A temporary token encoded when you create a new websocket or event subscription, which is included in the `websocket_url` field of the response. The token will expire in 1 hour after issue. To refresh the token, make a GET request to the corresponding websocket or event subscription endpoint.
+
+**Note**: If you are using a token from an event subscription api, the token will build a connection that access to this event subscription only. If you get the token from a websocket api, the token will allow you to receive payloads from all event subscriptions under this websocket entity.
+
+**Note**: You may used our old websocket service at [https://platform-websockets.uw.r.appspot.com/](https://platform-websockets.uw.r.appspot.com/)
+. That service is still accessible now but it was deprecated so we recommend you to use the new service for security and future updates. We may stop the deprecated service at any time.
+
+WSS is recommended for security.
+
+### 4\. Wait for logging:
+
+After verification no further action is required. As long as the connection is maintained, event logging payloads will be sent to the client when they are available.
+
+## Features:
+
+Multiple clients can be connected to the same event subscription. As long as a valid api key is provided, you can receive the logging payloads in different clients.
+
+Websocket subscriptions are independent of webhook based subscriptions, so both types of subscriptions can be created for the same target.
+
+You can monitor one event subscription in one client or you can monitor all subscriptions under a single websocket (same as using a single webhook for multiple subscriptions).

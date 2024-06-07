@@ -1,0 +1,190 @@
+---
+title: "SMS Events"
+description: "Details on near real-time SMS messages for your company."
+---
+SMS events provide details on SMS messages that are sent and received for your company and its users in near real-time. These events can be subscribed to for an entire company, office, or a more granular target (such as a call center or user). Delivery status events are also available by setting the `status` field to `True` when creating a subscription.
+
+Events are sent to a webhook that you (as a company admin or developer) provide. To get started, [create a webhook](/reference/webhookscreate)
+ and an [SMS event subscription using our API](/reference/webhook_sms_event_subscriptioncreate)
+.
+
+# Payload
+
+Payloads sent to your webhook will be JWT encoded and will contain the following fields:
+
+> ## 🚧
+> 
+> Note: By default, SMS text content is not included in events to ensure data privacy. If you are using API keys, please create a new key and add the 'message\_content\_export' when a target is specified with an event subscription, otherwise 'message\_content\_export:all' scope is required to enable this. For OAuth apps, contact [api@dialpad.com](mailto:api@dialpad.com)
+>  and request the `message_content_export, message_content_export:all` OAuth scopes.
+
+| Field | Description | Notes |
+| --- | --- | --- |
+| id  | A unique number ID automatically assigned to each message. |     |
+| created\_date | Unix timestamp indicating when the message was created (and sent). |     |
+| direction | SMS direction. Indicates whether a message was sent (outbound) or received (inbound). |     |
+| target | This is the ‘target’ indicating who sent or received the message.    The following fields are included:    **id:** A unique ID.  **type:** User/Department/Call Center etc.  **name:** Full name of the target.  **phone\_number:** E.164 phone number. | The target is the Dialpad user, Department or Call Center, regardless of whether the message is inbound or outbound. |
+| contact | This is the external contact that sent or received the message.    The following fields are included:    **id:** A unique ID.  **name:** Full name of the contact.  **phone\_number:** E.164 phone number. | The contact represents the external party, regardless of whether the message is inbound or outbound. |
+| sender\_id | The ID of the user who actually sent the message in the case where the target is a group, e.g. Office/Department/Call Center etc. | The sender\_id will be null if the target is not a group. |
+| from\_number | E.164 phone number of the sender. |     |
+| to\_number | A list of E.164 phone number of the receiver. |     |
+| mms | Boolean indicating if the message is an MMS. |     |
+| text | The text content of the SMS or URL to the MMS. | Only included if your API key has the `message_content_export` and/or `message_content_export:all` OAuth scope(s).    MMS image URLs point to images hosted by Google. By default, MMS images will constrained to a maximum of 512 pixels wide or tall. There are [various ways to modify a URL](https://sites.google.com/site/picasaresources/google-photos-1/how-to-get-a-direct-link-to-an-image) to obtain different image sizes. For example, to obtain the image in its original resolution, append `=s0` to the URL. |
+| message\_status | The delivery status of the SMS. | Will be included in all payloads if you set status=True when creating the event subscription. Otherwise only the first payload will have this field. Values: `success`, `failed`, `pending` |
+| message\_delivery\_result | The final result of the SMS delivery attempt | A more fine-grained enum denoting the final status of the SMS delivery attempt.  Values:`accepted`, `invalid_destination`, `invalid_source`, `no_route`, `not_supported`, `rejected`, `rejected_spam`, `internal_error`, `time_out`  (see table below for further details) |
+
+# Delivery Result Meanings
+
+More nuanced descriptions of each SMS delivery result can be found in the corresponding section of the Dialpad Help Center article here: [https://help.dialpad.com/docs/send-a-message#understanding-undelivered-messages](https://help.dialpad.com/docs/send-a-message#understanding-undelivered-messages)
+
+| Value | Relevant Help Center Section | Short Description |
+| --- | --- | --- |
+| `accepted` | N/A | The SMS was successfully delivered |
+| `invalid_destination` | Undelivered - Invalid recipient | The destination number was not a valid SMS recipient |
+| `invalid_source` | Undelivered - Invalid number configuration | The source number was not a valid SMS sender |
+| `no_route` | Undelivered - Invalid number configuration | The destination number was not reachable |
+| `rejected_spam` | Undelivered - Spam content | The message was flagged as spam |
+| `rejected` | Undelivered - Rejected | The message was rejected by a downstream carrier |
+| `internal_error` | Undelivered - Server failure - Retry | The message was dropped due to a server error |
+| `time_out` | Undelivered - Server failure - Retry | No indication of any delivery status was reported by the carrier |
+| `not_supported` | Delivery receipts not supported | The transport layer does not support message receipts.  The message may or may not have arrived |
+
+# Sample payloads
+
+```user outbound text message
+{
+  "id": 5747322335264456,
+  "created_date": 1582853674998,
+  "direction": "outbound",
+  "target": {
+    "phone_number": "+16010123456",
+    "type": "user",
+    "id": 5908860123456789,
+    "name": "target name"
+  },
+  "contact": {
+    "phone_number": "+16043111111",
+    "id": "http://www.google.com/m8/feeds/contacts/test@dialpad.com/base/21042cfc8b367347",
+    "name": "contact name"
+  },
+  "to_number": [\
+    "+16043111111"\
+  ],
+  "from_number": "+16010123456",
+  "sender_id": null,
+  "mms": false,
+  "text": "outbound message"
+}
+
+``````user outbound text message
+{
+  "id": 5747322335264456,
+  "created_date": 1582853674998,
+  "direction": "outbound",
+  "target": {
+    "phone_number": "+16010123456",
+    "type": "user",
+    "id": 5908860123456789,
+    "name": "target name"
+  },
+  "contact": {
+    "phone_number": "+16043111111",
+    "id": "http://www.google.com/m8/feeds/contacts/test@dialpad.com/base/21042cfc8b367347",
+    "name": "contact name"
+  },
+  "to_number": [\
+    "+16043111111"\
+  ],
+  "from_number": "+16010123456",
+  "sender_id": null,
+  "mms": true,
+  "text": "https://lh3.googleusercontent.com/linktoimage"
+}
+
+``````user outbound text message
+{
+  "id": 5747322335264456,
+  "created_date": 1582853674998,
+  "direction": "outbound",
+  "target": {
+    "phone_number": "+16010123456",
+    "type": "user",
+    "id": 5908860123456789,
+    "name": "target name"
+  },
+  "contact": {
+    "phone_number": null,
+    "name": "target name, contact name, contact name2",
+    "members": [\
+      {\
+        "phone_number": "+16043111111",\
+        "id": "http://www.google.com/m8/feeds/contacts/test@dialpad.com/base/21042cfc8b367347",\
+        "name": "contact name"\
+      },\
+      {\
+        "phone_number": "+16043111112",\
+        "id": "http://www.google.com/m8/feeds/contacts/test@dialpad.com/base/317894aba8b367348",\
+        "name": "contact name2"\
+      }\
+    ]
+  },
+  "to_number": [\
+    "+16043111111",\
+    "+16043111112"\
+  ],
+  "from_number": "+16010123456",
+  "sender_id": null,
+  "mms": false,
+  "text": "outbound group message"
+}
+
+``````user outbound text message
+{
+  "id": 5747322335264456,
+  "created_date": 1582853674998,
+  "direction": "outbound",
+  "target": {
+    "phone_number": "+16010123456",
+    "type": "office",
+    "id": 5908860123459876,
+    "name": "office name"
+  },
+  "contact": {
+    "phone_number": "+16043111111",
+    "id": "http://www.google.com/m8/feeds/contacts/test@dialpad.com/base/21042cfc8b367347",
+    "name": "contact name"
+  },
+  "to_number": [\
+    "+16043111111"\
+  ],
+  "from_number": "+16010123456",
+  "sender_id": 5908860123456789,
+  "mms": false,
+  "text": "office outbound message"
+}
+
+``````user outbound text message
+{
+  "id": 5747322335264456,
+  "created_date": 1582853674998,
+  "direction": "inbound",
+  "target": {
+    "phone_number": "+16010123456",
+    "type": "user",
+    "id": 5908860123456789,
+    "name": "target name"
+  },
+  "contact": {
+    "phone_number": "+16043111111",
+    "id": "http://www.google.com/m8/feeds/contacts/test@dialpad.com/base/21042cfc8b367347",
+    "name": "contact name"
+  },
+  "to_number": [\
+    "+16010123456"\
+  ],
+  "from_number": "+16043111111",
+  "sender_id": null,
+  "mms": false,
+  "text": "inbound message"
+}
+
+```
